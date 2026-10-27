@@ -1,29 +1,31 @@
 from configparser import ConfigParser
+from dataclasses import dataclass
 from pathlib import Path
 
 CONFIG_FILE = "config.ini"
 
+path = Path(CONFIG_FILE)
+if not path.exists():
+    path.touch()
 
-def create_config() -> None:
-    path = Path(CONFIG_FILE)
-    if not path.exists():
-        path.touch()
+parser = ConfigParser()
+parser.read_file(open(CONFIG_FILE))
 
-
+@dataclass
 class Config:
-    def __init__(self):
-        create_config()
-        self._config = ConfigParser()
-        self._config.read(CONFIG_FILE)
+    intervall: int
+    lines: list[str]
 
-    def get_intervall(self) -> int:
-        return self._config.getint("DEFAULT", "intervall", fallback=30)
 
-    def get_lines(self) -> list[str]:
-        return self._config.get("DEFAULT", "lines").split(",")
+def read_config() -> Config:
+    return Config(intervall=parser.getint("DEFAULT", "intervall"), lines=parser.get("DEFAULT", "lines").split(","))
 
-    def set_intervall(self, value: int) -> None:
-        self._config.set("DEFAULT", "intervall", str(value))
+def save_config(config: Config) -> None:
+    parser["DEFAULT"].update({"intervall": str(config.intervall), "lines": ",".join(config.lines)})
 
-    def set_lines(self, value: list[str]) -> None:
-        self._config.set("DEFAULT", "lines", ",".join(value))
+
+if __name__ == "__main__":
+    config = Config(intervall=5000, lines=["Hello my friend", "See you later"])
+    save_config(config)
+    conf = read_config()
+    print(conf)
