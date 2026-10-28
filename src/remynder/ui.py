@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu
 
 
 def create_tray_icon() -> QSystemTrayIcon:
-    icon = QIcon('icon.png')
+    icon = QIcon('remynder.png')
 
     tray = QSystemTrayIcon()
     tray.setIcon(icon)
