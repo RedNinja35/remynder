@@ -4,8 +4,7 @@ from time import time
 
 from remynder.config import Config, save_config
 
-@Protocol
-class UiProvider:
+class UiProvider(Protocol):
 
     def show_popup(self, message: str):
         ...

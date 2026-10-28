@@ -1,12 +1,17 @@
 from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QMainWindow
 
+from remynder.config import read_config
 from remynder.reminder import ReminderService
+from remynder.ui import MainUi
 
 app = QApplication([])
 app.setQuitOnLastWindowClosed(False)
 
-reminder_service = ReminderService()
+ui = MainUi()
+config = read_config()
+
+reminder_service = ReminderService(config=config,ui_provider=ui)
 
 timer = QTimer()
 timer.setInterval(30_000)

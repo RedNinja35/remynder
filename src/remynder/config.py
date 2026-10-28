@@ -6,7 +6,8 @@ CONFIG_FILE = "config.ini"
 
 path = Path(CONFIG_FILE)
 if not path.exists():
-    path.touch()
+    with open(CONFIG_FILE, "w") as f:
+        f.write("[DEFAULT]\nintervall=5000\nlines=")
 
 parser = ConfigParser()
 parser.read_file(open(CONFIG_FILE))
