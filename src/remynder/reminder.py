@@ -42,6 +42,7 @@ class ReminderService:
         self.next_reminder = time() + intervall
 
     def check(self) -> None:
+        print("Checking...")
         now = time()
         if not self.disabled and now >= self.next_reminder:
             self.ui_provider.show_popup(choice(self.config.lines))

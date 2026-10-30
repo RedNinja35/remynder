@@ -17,8 +17,10 @@ def main():
     reminder_service = ReminderService(config=config,ui_provider=ui)
 
     timer = QTimer()
-    timer.setInterval(30_000)
-    timer.timeout.connect(lambda: reminder_service.check())
+    timer.setInterval(3_000)
+    timer.timeout.connect(reminder_service.check)
+
+    timer.start()
 
     sys.exit(app.exec())
 
