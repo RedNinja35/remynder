@@ -2,6 +2,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QAction, QGuiApplication
 from PyQt6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu
 
+SETTINGS_WINDOW_WIDTH = 1000
+SETTINGS_WINDOW_HEIGHT = 800
 
 class SystemTrayIcon(QSystemTrayIcon):
     def __init__(self, icon: QIcon, parent=None):
@@ -32,8 +34,8 @@ class GuiService:
     def __init__(self) -> None:
         self.icon = QIcon('remynder.png')
 
-        self.width = 1000
-        self.height = 600
+        self.width = 600
+        self.height = 400
 
         screen = QGuiApplication.primaryScreen()
         if not screen is None:
@@ -59,4 +61,13 @@ class GuiService:
         self.reminder_window = reminder_window
 
     def open_settings_window(self) -> None:
-        self.show_popup("Settings")
+        settings_window = SettingsWindow(self.icon)
+        settings_window.show()
+
+
+class SettingsWindow(QMainWindow):
+    def __init__(self, icon: QIcon) -> None:
+        super().__init__()
+        self.setWindowTitle("Settings")
+        self.setWindowIcon(icon)
+        self.setGeometry(0, 0, SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT)
