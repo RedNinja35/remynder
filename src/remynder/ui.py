@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QAction, QGuiApplication
-from PyQt6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu
+from PyQt6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QLabel, QLineEdit
 
 SETTINGS_WINDOW_WIDTH = 1000
 SETTINGS_WINDOW_HEIGHT = 800
@@ -49,6 +49,7 @@ class GuiService:
 
         self.tray = tray
         self.reminder_window = None
+        self.settings_window = None
 
     def show_popup(self, message: str) -> None:
         reminder_window = QMainWindow()
@@ -63,6 +64,7 @@ class GuiService:
     def open_settings_window(self) -> None:
         settings_window = SettingsWindow(self.icon)
         settings_window.show()
+        self.settings_window = settings_window
 
 
 class SettingsWindow(QMainWindow):
@@ -71,3 +73,6 @@ class SettingsWindow(QMainWindow):
         self.setWindowTitle("Settings")
         self.setWindowIcon(icon)
         self.setGeometry(0, 0, SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT)
+
+        self.label = QLabel(parent=self, text="Interval")
+        self.interval_input = QLineEdit(self)
