@@ -1,9 +1,18 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QAction, QGuiApplication
-from PyQt6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QLabel, QLineEdit
+from PyQt6.QtGui import QAction, QGuiApplication, QIcon
+from PyQt6.QtWidgets import (
+    QApplication,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QMenu,
+    QSystemTrayIcon,
+)
 
 SETTINGS_WINDOW_WIDTH = 1000
 SETTINGS_WINDOW_HEIGHT = 800
+ICON_PATH = "ressources/remynder.png"
+
 
 class SystemTrayIcon(QSystemTrayIcon):
     def __init__(self, icon: QIcon, parent=None):
@@ -30,9 +39,10 @@ class SystemTrayIcon(QSystemTrayIcon):
         [self.menu.addAction(a) for a in self.actions]
         self.setContextMenu(self.menu)
 
+
 class GuiService:
     def __init__(self) -> None:
-        self.icon = QIcon('remynder.png')
+        self.icon = QIcon(ICON_PATH)
 
         self.width = 600
         self.height = 400
@@ -48,8 +58,8 @@ class GuiService:
         tray.add_action(settings_action)
 
         self.tray = tray
-        self.reminder_window = None
-        self.settings_window = None
+        self.reminder_window: QMainWindow | None = None
+        self.settings_window: QMainWindow | None = None
 
     def show_popup(self, message: str) -> None:
         reminder_window = QMainWindow()

@@ -10,7 +10,9 @@ if not path.exists():
         f.write("[DEFAULT]\nintervall=5000\nlines=")
 
 parser = ConfigParser()
-parser.read_file(open(CONFIG_FILE))
+with open(CONFIG_FILE) as f:
+    parser.read_file(f)
+
 
 @dataclass
 class Config:
@@ -19,10 +21,16 @@ class Config:
 
 
 def read_config() -> Config:
-    return Config(intervall=parser.getint("DEFAULT", "intervall"), lines=parser.get("DEFAULT", "lines").split(","))
+    return Config(
+        intervall=parser.getint("DEFAULT", "intervall"),
+        lines=parser.get("DEFAULT", "lines").split(","),
+    )
+
 
 def save_config(config: Config) -> None:
-    parser["DEFAULT"].update({"intervall": str(config.intervall), "lines": ",".join(config.lines)})
+    parser["DEFAULT"].update(
+        {"intervall": str(config.intervall), "lines": ",".join(config.lines)}
+    )
 
 
 if __name__ == "__main__":

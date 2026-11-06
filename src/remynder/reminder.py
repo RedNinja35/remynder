@@ -1,13 +1,13 @@
 from random import choice
-from typing import Protocol
 from time import time
+from typing import Protocol
 
-from remynder.config import Config, save_config
+from config import Config, save_config
+
 
 class UiProvider(Protocol):
+    def show_popup(self, message: str): ...
 
-    def show_popup(self, message: str):
-        ...
 
 class ReminderService:
     def __init__(self, config: Config, ui_provider: UiProvider) -> None:
@@ -46,5 +46,3 @@ class ReminderService:
         now = time()
         if not self.disabled and now >= self.next_reminder:
             self.ui_provider.show_popup(choice(self.config.lines))
-
-
