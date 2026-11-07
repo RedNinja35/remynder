@@ -6,11 +6,15 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QMainWindow,
     QMenu,
+    QSlider,
     QSystemTrayIcon,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
 SETTINGS_WINDOW_WIDTH = 1000
-SETTINGS_WINDOW_HEIGHT = 800
+SETTINGS_WINDOW_HEIGHT = 400
 ICON_PATH = "ressources/remynder.png"
 
 
@@ -84,5 +88,19 @@ class SettingsWindow(QMainWindow):
         self.setWindowIcon(icon)
         self.setGeometry(0, 0, SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT)
 
-        self.label = QLabel(parent=self, text="Interval")
-        self.interval_input = QLineEdit(self)
+        slider = QSlider()
+        slider.setOrientation(Qt.Orientation.Horizontal)
+        slider.setMaximum(1440)
+        slider.setMinimum(1)
+
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel(text="Interval in minutes"))
+        layout.addWidget(slider)
+        layout.addWidget(QLineEdit())
+        layout.addWidget(QLabel(text="Messages"))
+        layout.addWidget(QTextEdit())
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
