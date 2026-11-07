@@ -1,12 +1,13 @@
+from config import Config, read_config, save_config
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QGuiApplication, QIcon
+from PyQt6.QtGui import QAction, QGuiApplication, QIcon, QIntValidator
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
     QLineEdit,
     QMainWindow,
     QMenu,
-    QSlider,
+    QPushButton,
     QSystemTrayIcon,
     QTextEdit,
     QVBoxLayout,
@@ -16,6 +17,7 @@ from PyQt6.QtWidgets import (
 SETTINGS_WINDOW_WIDTH = 1000
 SETTINGS_WINDOW_HEIGHT = 400
 ICON_PATH = "ressources/remynder.png"
+DELIMITER = "\n"
 
 
 class SystemTrayIcon(QSystemTrayIcon):
@@ -25,13 +27,14 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.setIcon(icon)
         self.setVisible(True)
 
+        self.toggle_action = QAction("Disable")
+        self.toggle_action.triggered.connect(self.toggle_active)
+
         quit_action = QAction("Quit")
         quit_action.triggered.connect(QApplication.quit)
 
-        actions = [quit_action]
+        actions = [self.toggle_action, quit_action]
         self.actions = actions
-
-        self._create_menu()
 
     def add_action(self, action: QAction) -> None:
         self.actions.append(action)
@@ -42,6 +45,9 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.actions.sort(key=lambda a: a.text())
         [self.menu.addAction(a) for a in self.actions]
         self.setContextMenu(self.menu)
+
+    def toggle_active(self):
+        self.toggle_action.setText("Enable")
 
 
 class GuiService:
@@ -76,31 +82,47 @@ class GuiService:
         self.reminder_window = reminder_window
 
     def open_settings_window(self) -> None:
-        settings_window = SettingsWindow(self.icon)
+        config = read_config()
+        settings_window = SettingsWindow(self.icon, config)
         settings_window.show()
         self.settings_window = settings_window
 
 
 class SettingsWindow(QMainWindow):
-    def __init__(self, icon: QIcon) -> None:
+    def __init__(self, icon: QIcon, config: Config) -> None:
         super().__init__()
         self.setWindowTitle("Settings")
         self.setWindowIcon(icon)
         self.setGeometry(0, 0, SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT)
 
-        slider = QSlider()
-        slider.setOrientation(Qt.Orientation.Horizontal)
-        slider.setMaximum(1440)
-        slider.setMinimum(1)
+        self.intervall_validator = QIntValidator()
+
+        edit = QLineEdit()
+        edit.setValidator(self.intervall_validator)
+        edit.setText(str(config.intervall))
+        self.edit = edit
+
+        text_field = QTextEdit()
+        text_field.setText(DELIMITER.join(config.lines))
+        self.text_field = text_field
+
+        save_button = QPushButton()
+        save_button.clicked.connect(self.save_settings)
 
         layout = QVBoxLayout()
-        layout.addWidget(QLabel(text="Interval in minutes"))
-        layout.addWidget(slider)
-        layout.addWidget(QLineEdit())
+        layout.addWidget(QLabel(text="Intervall in minutes"))
+        layout.addWidget(edit)
         layout.addWidget(QLabel(text="Messages"))
-        layout.addWidget(QTextEdit())
+        layout.addWidget(text_field)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
+
+    def save_settings(self) -> None:
+        intervall = self.edit.text()
+        lines = self.text_field.toPlainText().split(DELIMITER)
+
+        config = Config(int(intervall), lines)
+        save_config(config)
