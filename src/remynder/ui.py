@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QMenu,
     QPushButton,
+    QSpinBox,
     QSystemTrayIcon,
     QTextEdit,
     QVBoxLayout,
@@ -91,38 +92,46 @@ class GuiService:
 class SettingsWindow(QMainWindow):
     def __init__(self, icon: QIcon, config: Config) -> None:
         super().__init__()
+        self._build_ui(icon)
+        self._load_settings(config)
+        self._add_button_events()
+
+    def _build_ui(self, icon: QIcon):
         self.setWindowTitle("Settings")
         self.setWindowIcon(icon)
         self.setGeometry(0, 0, SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT)
 
-        self.intervall_validator = QIntValidator()
-
-        edit = QLineEdit()
-        edit.setValidator(self.intervall_validator)
-        edit.setText(str(config.intervall))
+        edit = QSpinBox()
         self.edit = edit
 
         text_field = QTextEdit()
-        text_field.setText(DELIMITER.join(config.lines))
         self.text_field = text_field
 
-        save_button = QPushButton()
-        save_button.clicked.connect(self.save_settings)
+        self.save_button = QPushButton()
+        self.save_button.setText("Save")
 
         layout = QVBoxLayout()
         layout.addWidget(QLabel(text="Intervall in minutes"))
         layout.addWidget(edit)
         layout.addWidget(QLabel(text="Messages"))
         layout.addWidget(text_field)
+        layout.addWidget(self.save_button)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
-    def save_settings(self) -> None:
-        intervall = self.edit.text()
+    def _add_button_events(self):
+        self.save_button.clicked.connect(self._save_settings)
+
+    def _load_settings(self, config: Config):
+        self.edit.setValue(config.intervall)
+        self.text_field.setText(DELIMITER.join(config.lines))
+
+    def _save_settings(self) -> None:
+        intervall = self.edit.value()
         lines = self.text_field.toPlainText().split(DELIMITER)
 
-        config = Config(int(intervall), lines)
+        config = Config(intervall, lines)
         save_config(config)
