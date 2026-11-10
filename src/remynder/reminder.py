@@ -14,7 +14,7 @@ class ReminderService:
         self.config = config
         self.ui_provider = ui_provider
         self.disabled = False
-        self._set_next_reminder(config.intervall)
+        self._set_last_reminder(time())
 
     def set_intervall(self, intervall: int) -> None:
         self.config.intervall = intervall
@@ -28,21 +28,18 @@ class ReminderService:
     def get_lines(self) -> list[str]:
         return self.config.lines
 
-    def save(self) -> None:
-        save_config(self.config)
-
     def disable(self) -> None:
         self.disabled = True
 
     def enable(self) -> None:
         self.disabled = False
-        self._set_next_reminder(self.config.intervall)
+        self._set_last_reminder(time())
 
-    def _set_next_reminder(self, intervall: int) -> None:
-        self.next_reminder = time() + intervall
+    def _set_last_reminder(self, time: float) -> None:
+        self.last_reminder = time
 
     def check(self) -> None:
         print("Checking...")
         now = time()
-        if not self.disabled and now >= self.next_reminder:
+        if not self.disabled and now >= (self.last_reminder + self.config.intervall):
             self.ui_provider.show_popup(choice(self.config.lines))

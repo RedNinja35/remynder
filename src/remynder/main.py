@@ -11,8 +11,8 @@ def main():
     app = QApplication([])
     app.setQuitOnLastWindowClosed(False)
 
-    ui = GuiService()
     config = read_config()
+    ui = GuiService(config)
 
     reminder_service = ReminderService(config=config, ui_provider=ui)
 

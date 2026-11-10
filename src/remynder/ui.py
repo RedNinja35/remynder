@@ -1,10 +1,9 @@
 from config import Config, read_config, save_config
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QGuiApplication, QIcon, QIntValidator
+from PyQt6.QtGui import QAction, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
-    QLineEdit,
     QMainWindow,
     QMenu,
     QPushButton,
@@ -37,13 +36,12 @@ class SystemTrayIcon(QSystemTrayIcon):
         actions = [self.toggle_action, quit_action]
         self.actions = actions
 
-    def add_action(self, action: QAction) -> None:
-        self.actions.append(action)
+    def insert_action(self, index: int, action: QAction) -> None:
+        self.actions.insert(index, action)
         self._create_menu()
 
     def _create_menu(self) -> None:
         self.menu = QMenu()
-        self.actions.sort(key=lambda a: a.text())
         [self.menu.addAction(a) for a in self.actions]
         self.setContextMenu(self.menu)
 
@@ -52,11 +50,12 @@ class SystemTrayIcon(QSystemTrayIcon):
 
 
 class GuiService:
-    def __init__(self) -> None:
-        self.icon = QIcon(ICON_PATH)
+    def __init__(self, config: Config) -> None:
+        self._config = config
+        self._icon = QIcon(ICON_PATH)
 
-        self.width = 600
-        self.height = 400
+        self._width = 600
+        self._height = 400
 
         screen = QGuiApplication.primaryScreen()
         if not screen is None:
@@ -65,8 +64,8 @@ class GuiService:
         settings_action = QAction("Settings")
         settings_action.triggered.connect(self.open_settings_window)
 
-        tray = SystemTrayIcon(self.icon)
-        tray.add_action(settings_action)
+        tray = SystemTrayIcon(self._icon)
+        tray.insert_action(1, settings_action)
 
         self.tray = tray
         self.reminder_window: QMainWindow | None = None
@@ -75,16 +74,15 @@ class GuiService:
     def show_popup(self, message: str) -> None:
         reminder_window = QMainWindow()
         reminder_window.setWindowTitle("Remynder")
-        reminder_window.setWindowIcon(self.icon)
-        reminder_window.setGeometry(0, 0, self.width, self.height)
+        reminder_window.setWindowIcon(self._icon)
+        reminder_window.setGeometry(0, 0, self._width, self._height)
         reminder_window.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
         reminder_window.setWindowFlags(Qt.WindowType.WindowTitleHint)
         reminder_window.show()
         self.reminder_window = reminder_window
 
     def open_settings_window(self) -> None:
-        config = read_config()
-        settings_window = SettingsWindow(self.icon, config)
+        settings_window = SettingsWindow(self._icon, self._config)
         settings_window.show()
         self.settings_window = settings_window
 
@@ -126,6 +124,7 @@ class SettingsWindow(QMainWindow):
         self.save_button.clicked.connect(self._save_settings)
 
     def _load_settings(self, config: Config):
+        self._config = config
         self.edit.setValue(config.intervall)
         self.text_field.setText(DELIMITER.join(config.lines))
 
@@ -133,5 +132,6 @@ class SettingsWindow(QMainWindow):
         intervall = self.edit.value()
         lines = self.text_field.toPlainText().split(DELIMITER)
 
-        config = Config(intervall, lines)
-        save_config(config)
+        self._config.intervall = intervall
+        self._config.lines = lines
+        save_config(self._config)
