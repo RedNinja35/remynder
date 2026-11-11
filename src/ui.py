@@ -1,4 +1,3 @@
-from config import Config, read_config, save_config
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
@@ -13,6 +12,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from config import Config, save_config
 
 SETTINGS_WINDOW_WIDTH = 1000
 SETTINGS_WINDOW_HEIGHT = 400
@@ -62,7 +63,7 @@ class GuiService:
             self.center = screen.availableGeometry().center()
 
         settings_action = QAction("Settings")
-        settings_action.triggered.connect(self.open_settings_window)
+        settings_action.triggered.connect(self._open_settings_window)
 
         tray = SystemTrayIcon(self._icon)
         tray.insert_action(1, settings_action)
@@ -81,7 +82,7 @@ class GuiService:
         reminder_window.show()
         self.reminder_window = reminder_window
 
-    def open_settings_window(self) -> None:
+    def _open_settings_window(self) -> None:
         settings_window = SettingsWindow(self._icon, self._config)
         settings_window.show()
         self.settings_window = settings_window

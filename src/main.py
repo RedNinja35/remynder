@@ -1,8 +1,9 @@
 import sys
 
-from config import read_config
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QApplication
+
+from config import read_config
 from reminder import ReminderService
 from ui import GuiService
 
