@@ -1,4 +1,7 @@
-from PyQt6.QtCore import Qt
+from collections.abc import Callable
+from time import time
+
+from PyQt6.QtCore import QPoint, QSize, Qt
 from PyQt6.QtGui import QAction, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
@@ -17,6 +20,8 @@ from config import Config, save_config
 
 SETTINGS_WINDOW_WIDTH = 1000
 SETTINGS_WINDOW_HEIGHT = 400
+POPUP_WINDOW_WIDTH = 500
+POPUP_WINDOW_HEIGHT = 100
 ICON_PATH = "ressources/remynder.png"
 DELIMITER = "\n"
 
@@ -55,13 +60,6 @@ class GuiService:
         self._config = config
         self._icon = QIcon(ICON_PATH)
 
-        self._width = 600
-        self._height = 400
-
-        screen = QGuiApplication.primaryScreen()
-        if not screen is None:
-            self.center = screen.availableGeometry().center()
-
         settings_action = QAction("Settings")
         settings_action.triggered.connect(self._open_settings_window)
 
@@ -72,33 +70,43 @@ class GuiService:
         self.reminder_window: QMainWindow | None = None
         self.settings_window: QMainWindow | None = None
 
-    def show_popup(self, message: str) -> None:
-        reminder_window = QMainWindow()
+    @property
+    def center(self):
+        screen = QGuiApplication.primaryScreen()
+        if not screen is None:
+            return screen.availableGeometry().center()
+        return QPoint(0, 0)
+
+    def show_popup(self, message: str, reset: Callable) -> None:
+        reminder_window = PopupWindow(message, reset, self.center)
         reminder_window.setWindowTitle("Remynder")
         reminder_window.setWindowIcon(self._icon)
-        reminder_window.setGeometry(0, 0, self._width, self._height)
-        reminder_window.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
-        reminder_window.setWindowFlags(Qt.WindowType.WindowTitleHint)
+
         reminder_window.show()
         self.reminder_window = reminder_window
 
     def _open_settings_window(self) -> None:
-        settings_window = SettingsWindow(self._icon, self._config)
+        settings_window = SettingsWindow(self._icon, self._config, self.center)
         settings_window.show()
         self.settings_window = settings_window
 
 
 class SettingsWindow(QMainWindow):
-    def __init__(self, icon: QIcon, config: Config) -> None:
+    def __init__(self, icon: QIcon, config: Config, center: QPoint) -> None:
         super().__init__()
-        self._build_ui(icon)
+        self._build_ui(icon, center)
         self._load_settings(config)
         self._add_button_events()
 
-    def _build_ui(self, icon: QIcon):
+    def _build_ui(self, icon: QIcon, center: QPoint):
         self.setWindowTitle("Settings")
         self.setWindowIcon(icon)
-        self.setGeometry(0, 0, SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT)
+        self.setGeometry(
+            int(center.x() - (SETTINGS_WINDOW_WIDTH / 2)),
+            int(center.y() - (SETTINGS_WINDOW_HEIGHT / 2)),
+            SETTINGS_WINDOW_WIDTH,
+            SETTINGS_WINDOW_HEIGHT,
+        )
 
         edit = QSpinBox()
         self.edit = edit
@@ -108,6 +116,7 @@ class SettingsWindow(QMainWindow):
 
         self.save_button = QPushButton()
         self.save_button.setText("Save")
+        self.save_button.setMaximumWidth(120)
 
         layout = QVBoxLayout()
         layout.addWidget(QLabel(text="Intervall in minutes"))
@@ -136,3 +145,40 @@ class SettingsWindow(QMainWindow):
         self._config.intervall = intervall
         self._config.lines = lines
         save_config(self._config)
+        self.close()
+
+
+class PopupWindow(QMainWindow):
+    def __init__(self, message: str, reset: Callable, center: QPoint):
+        super().__init__()
+        self.reset = reset
+
+        self.setGeometry(
+            int(center.x() - POPUP_WINDOW_WIDTH / 2),
+            int(center.y() - POPUP_WINDOW_HEIGHT / 2),
+            POPUP_WINDOW_WIDTH,
+            POPUP_WINDOW_HEIGHT,
+        )
+
+        self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.WindowType.WindowTitleHint)
+
+        layout = QVBoxLayout()
+
+        button = QPushButton("Ok")
+        button.setMaximumWidth(120)
+        button.clicked.connect(self._close)
+
+        label = QLabel(text=message)
+
+        layout.addWidget(label)
+        layout.addWidget(button)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
+
+    def _close(self):
+        self.reset(time())
+        self.close()
