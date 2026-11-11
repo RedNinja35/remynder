@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from time import time
 
-from PyQt6.QtCore import QPoint, QSize, Qt
+from PyQt6.QtCore import QPoint, Qt
 from PyQt6.QtGui import QAction, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
