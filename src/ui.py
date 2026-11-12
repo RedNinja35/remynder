@@ -2,7 +2,7 @@ from collections.abc import Callable
 from time import time
 
 from PyQt6.QtCore import QPoint, Qt
-from PyQt6.QtGui import QAction, QGuiApplication, QIcon
+from PyQt6.QtGui import QAction, QFont, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
@@ -169,7 +169,12 @@ class PopupWindow(QMainWindow):
         button.setMaximumWidth(120)
         button.clicked.connect(self._close)
 
+        font = QFont()
+        font.setBold(True)
+
         label = QLabel(text=message)
+        label.setFont(font)
+        label.setMargin(15)
 
         layout.addWidget(label)
         layout.addWidget(button)
