@@ -33,13 +33,10 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.setIcon(icon)
         self.setVisible(True)
 
-        self.toggle_action = QAction("Disable")
-        self.toggle_action.triggered.connect(self.toggle_active)
-
         quit_action = QAction("Quit")
         quit_action.triggered.connect(QApplication.quit)
 
-        actions = [self.toggle_action, quit_action]
+        actions = [quit_action]
         self.actions = actions
 
     def insert_action(self, index: int, action: QAction) -> None:
@@ -51,19 +48,20 @@ class SystemTrayIcon(QSystemTrayIcon):
         [self.menu.addAction(a) for a in self.actions]
         self.setContextMenu(self.menu)
 
-    def toggle_active(self):
-        self.toggle_action.setText("Enable")
-
 
 class GuiService:
     def __init__(self, config: Config) -> None:
         self._config = config
         self._icon = QIcon(ICON_PATH)
 
+        self.toggle_action = QAction("Disable")
+        self.toggle_action.triggered.connect(self._toggle_active)
+
         settings_action = QAction("Settings")
         settings_action.triggered.connect(self._open_settings_window)
 
         tray = SystemTrayIcon(self._icon)
+        tray.insert_action(0, self.toggle_action)
         tray.insert_action(1, settings_action)
 
         self.tray = tray
@@ -89,6 +87,13 @@ class GuiService:
         settings_window = SettingsWindow(self._icon, self._config, self.center)
         settings_window.show()
         self.settings_window = settings_window
+
+    def _toggle_active(self):
+        self._config.disabled = not self._config.disabled
+        if self._config.disabled:
+            self.toggle_action.setText("Enable")
+        else:
+            self.toggle_action.setText("Disable")
 
 
 class SettingsWindow(QMainWindow):
