@@ -1,10 +1,15 @@
-from collections.abc import Callables
+from collections.abc import Callable
+from string import Template
 from time import time
 
 from PyQt6.QtCore import QPoint, Qt
-from PyQt6.QtGui import QAction, QFont, QGuiApplication, QIcon
+from PyQt6.QtGui import QAction, QColor, QFont, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
+    QDialog,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QHBoxLayout,
     QLabel,
     QMainWindow,
     QMenu,
@@ -18,12 +23,91 @@ from PyQt6.QtWidgets import (
 
 from config import Config, save_config
 
+THEMES = {
+    "light": {
+        "bg": "#FFFFFF",
+        "border": "#E3E6EA",
+        "text": "#1F2328",
+        "subtext": "#6B7280",
+        "accent": "#2563EB",
+        "accent_hover": "#1D4ED8",
+        "accent_pressed": "#1E40AF",
+        "accent_text": "#FFFFFF",
+        "focus": "#93C5FD",
+    },
+    "dark": {
+        "bg": "#1E1F24",
+        "border": "#34363D",
+        "text": "#E8EAED",
+        "subtext": "#9AA0A6",
+        "accent": "#4F8CFF",
+        "accent_hover": "#6A9DFF",
+        "accent_pressed": "#3B78F0",
+        "accent_text": "#FFFFFF",
+        "focus": "#1E3A8A",
+    },
+}
+
+SHADOW_COLORS = {
+    "light": QColor(0, 0, 0, 60),
+    "dark": QColor(0, 0, 0, 170),
+}
+
+STYLESHEET = Template("""
+#card {
+    background-color: $bg;
+    border: 1px solid $border;
+    border-radius: 18px;
+}
+QLabel {
+    background: transparent;
+    font-family: "Segoe UI Variable Text", "Segoe UI", "Inter", sans-serif;
+}
+#title {
+    color: $accent;
+    font-size: 10pt;
+    font-weight: 700;
+}
+#message {
+    color: $text;
+    font-size: 15pt;
+    font-weight: 500;
+}
+#hint {
+    color: $subtext;
+    font-size: 9pt;
+}
+#okButton {
+    background-color: $accent;
+    color: $accent_text;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 9px 36px;
+    min-width: 110px;
+    font-family: "Segoe UI Variable Text", "Segoe UI", "Inter", sans-serif;
+    font-size: 11pt;
+    font-weight: 600;
+}
+#okButton:hover   { background-color: $accent_hover; }
+#okButton:pressed { background-color: $accent_pressed; }
+#okButton:focus   { border: 2px solid $focus; }
+""")
+
 SETTINGS_WINDOW_WIDTH = 1000
 SETTINGS_WINDOW_HEIGHT = 400
 POPUP_WINDOW_WIDTH = 500
 POPUP_WINDOW_HEIGHT = 100
 ICON_PATH = "ressources/remynder.png"
 DELIMITER = "\n"
+
+
+def is_dark_mode() -> bool:
+    hints = QGuiApplication.styleHints()
+    if hints is not None:
+        scheme = hints.colorScheme()
+        if scheme != Qt.ColorScheme.Unknown:
+            return scheme == Qt.ColorScheme.Dark
+    return QGuiApplication.palette().window().color().lightness() < 128
 
 
 class SystemTrayIcon(QSystemTrayIcon):
@@ -65,7 +149,7 @@ class GuiService:
         tray.insert_action(1, settings_action)
 
         self.tray = tray
-        self.reminder_window: QMainWindow | None = None
+        self.reminder_window: PopupWindow | None = None
         self.settings_window: QMainWindow | None = None
 
     @property
@@ -76,7 +160,7 @@ class GuiService:
         return QPoint(0, 0)
 
     def show_popup(self, message: str, reset: Callable) -> None:
-        reminder_window = PopupWindow(message, reset, self.center)
+        reminder_window = PopupWindow(message, reset)
         reminder_window.setWindowTitle("Remynder")
         reminder_window.setWindowIcon(self._icon)
 
@@ -153,42 +237,86 @@ class SettingsWindow(QMainWindow):
         self.close()
 
 
-class PopupWindow(QMainWindow):
-    def __init__(self, message: str, reset: Callable, center: QPoint):
+class PopupWindow(QDialog):
+    def __init__(self, message: str, reset: Callable):
         super().__init__()
         self.reset = reset
 
-        self.setGeometry(
-            int(center.x() - POPUP_WINDOW_WIDTH / 2),
-            int(center.y() - POPUP_WINDOW_HEIGHT / 2),
-            POPUP_WINDOW_WIDTH,
-            POPUP_WINDOW_HEIGHT,
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.WindowStaysOnTopHint
+            | Qt.WindowType.Dialog
         )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
-        self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
-        self.setWindowFlags(Qt.WindowType.WindowTitleHint)
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(28, 28, 28, 28)
 
-        layout = QVBoxLayout()
+        self.card = QFrame()
+        self.card.setObjectName("card")
+        outer_layout.addWidget(self.card)
 
-        button = QPushButton("Ok")
-        button.setMaximumWidth(120)
-        button.clicked.connect(self._close)
+        layout = QVBoxLayout(self.card)
+        layout.setContentsMargins(36, 28, 36, 26)
+        layout.setSpacing(14)
 
-        font = QFont()
-        font.setBold(True)
+        title = QLabel("Remynder")
+        title.setObjectName("title")
+        f = title.font()
 
-        label = QLabel(text=message)
-        label.setFont(font)
-        label.setMargin(15)
+        f.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.5)
+        title.setFont(f)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        layout.addWidget(label)
-        layout.addWidget(button)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        text = QLabel(message)
+        text.setObjectName("message")
+        text.setWordWrap(True)
 
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
+        text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        text.setMinimumWidth(360)
+        text.setMaximumWidth(520)
+
+        self.button = QPushButton("OK")
+        self.button.setObjectName("okButton")
+        self.button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.button.setDefault(True)
+        self.button.clicked.connect(self._close)
+
+        button_column = QHBoxLayout()
+        button_column.addStretch()
+        button_column.addWidget(self.button)
+        button_column.addStretch()
+
+        layout.addWidget(title)
+        layout.addWidget(text)
+        layout.addSpacing(6)
+        layout.addLayout(button_column)
+
+        self._set_shadow()
+        self._set_theme()
+        self._show_window()
 
     def _close(self):
         self.reset(time())
         self.close()
+
+    def _set_shadow(self):
+        self.shadow = QGraphicsDropShadowEffect(self.card)
+        self.shadow.setBlurRadius(40)
+        self.shadow.setOffset(0, 8)
+        self.card.setGraphicsEffect(self.shadow)
+
+    def _set_theme(self) -> None:
+        mode = "dark" if is_dark_mode() else "light"
+        self.setStyleSheet(STYLESHEET.substitute(THEMES[mode]))
+        self.shadow.setColor(SHADOW_COLORS[mode])
+
+    def _show_window(self) -> None:
+        self.adjustSize()
+        screen = self.screen()
+        if screen is not None:
+            area = screen.availableGeometry()
+            self.move(area.center() - self.rect().center())
+        self.raise_()
+        self.activateWindow()
+        self.button.setFocus()
