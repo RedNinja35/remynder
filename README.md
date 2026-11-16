@@ -17,7 +17,7 @@ uv sync
 Anschließend kann mit dem folgenden Befehl die ausführbare Datei erstellt werden:
 
 ```bash
-uv run pyinstaller --onefile --windowed --icon=ressources/remynder.png --add-data "ressources/remynder.png:ressources" src/main.py
+uv run pyinstaller --onefile --windowed --icon=resources/remynder.png --add-data "resources/remynder.png:resources" src/main.py
 ```
 
 ## Features
