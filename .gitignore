@@ -2,6 +2,11 @@
 .mypy_cache
 .ruff_cache
 .venv
+
 config.ini
+
 build
 dist
+main.spec
+
+src/__pycache__
