@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callables
 from time import time
 
 from PyQt6.QtCore import QPoint, Qt
