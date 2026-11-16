@@ -1,4 +1,6 @@
+import sys
 from collections.abc import Callable
+from pathlib import Path
 from string import Template
 from time import time
 
@@ -101,6 +103,15 @@ ICON_PATH = "ressources/remynder.png"
 DELIMITER = "\n"
 
 
+def resource_path(relative_path: str) -> str:
+    """Return absolute path to a resource, working for dev and PyInstaller builds."""
+    if hasattr(sys, "_MEIPASS"):
+        base_path = Path(sys._MEIPASS)  # bundle root in the exe
+    else:
+        base_path = Path(__file__).resolve().parent.parent  # src/ -> project root
+    return str(base_path / relative_path)
+
+
 def is_dark_mode() -> bool:
     hints = QGuiApplication.styleHints()
     if hints is not None:
@@ -136,7 +147,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 class GuiService:
     def __init__(self, config: Config) -> None:
         self._config = config
-        self._icon = QIcon(ICON_PATH)
+        self._icon = QIcon(resource_path(ICON_PATH))
 
         self.toggle_action = QAction("Disable")
         self.toggle_action.triggered.connect(self._toggle_active)
