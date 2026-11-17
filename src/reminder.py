@@ -35,3 +35,4 @@ class ReminderService:
             self.ui_provider.show_popup(
                 choice(self.config.lines), self.set_last_reminder
             )
+            self.reminder_is_reset = False
