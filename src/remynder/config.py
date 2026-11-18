@@ -29,7 +29,7 @@ def create_parser(path: Path) -> ConfigParser:
 
 @dataclass
 class Config:
-    intervall: int
+    interval: int
     lines: list[str]
     disabled: bool
 
@@ -37,7 +37,7 @@ class Config:
 def read_config() -> Config:
     parser = create_parser(CONFIG_FILE)
     return Config(
-        intervall=parser.getint("DEFAULT", "intervall"),
+        interval=parser.getint("DEFAULT", "interval"),
         lines=parser.get("DEFAULT", "lines").split(LINES_DELIMITER),
         disabled=parser.getboolean("DEFAULT", "disabled"),
     )
@@ -47,7 +47,7 @@ def save_config(config: Config) -> None:
     parser = create_parser(CONFIG_FILE)
     parser["DEFAULT"].update(
         {
-            "intervall": str(config.intervall),
+            "interval": str(config.interval),
             "lines": LINES_DELIMITER.join(config.lines),
             "disabled": str(config.disabled),
         }

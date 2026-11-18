@@ -30,7 +30,7 @@ class ReminderService:
         if (
             not self.config.disabled
             and self.reminder_is_reset
-            and now >= (self.last_reminder + (self.config.intervall * 60))
+            and now >= (self.last_reminder + (self.config.interval * 60))
         ):
             self.ui_provider.show_popup(
                 choice(self.config.lines), self.set_last_reminder
