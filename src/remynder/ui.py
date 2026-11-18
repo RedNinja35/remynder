@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from config import Config, save_config
+from .config import Config, save_config
 
 THEMES = {
     "light": {
@@ -249,7 +249,7 @@ class SettingsWindow(QMainWindow):
 
 
 class PopupWindow(QDialog):
-    def __init__(self, message: str, reset: Callable):
+    def __init__(self, message: str, reset: Callable[[], None]):
         super().__init__()
         self.reset = reset
 
@@ -307,11 +307,11 @@ class PopupWindow(QDialog):
         self._set_theme()
         self._show_window()
 
-    def _close(self):
-        self.reset(time())
+    def _close(self) -> None:
+        self.reset()
         self.close()
 
-    def _set_shadow(self):
+    def _set_shadow(self) -> None:
         self.shadow = QGraphicsDropShadowEffect(self.card)
         self.shadow.setBlurRadius(40)
         self.shadow.setOffset(0, 8)

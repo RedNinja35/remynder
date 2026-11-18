@@ -3,7 +3,7 @@ from random import choice
 from time import time
 from typing import Protocol
 
-from config import Config
+from .config import Config
 
 disabled = False
 last_reminder = time()
