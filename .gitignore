@@ -9,4 +9,4 @@ build
 dist
 main.spec
 
-src/__pycache__
+__pycache__/
