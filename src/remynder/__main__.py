@@ -3,12 +3,12 @@ import sys
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QApplication
 
-from config import read_config
-from reminder import ReminderService
-from ui import GuiService
+from .config import read_config
+from .reminder import ReminderService
+from .ui import GuiService
 
 
-def main():
+def main() -> None:
     app = QApplication([])
     app.setQuitOnLastWindowClosed(False)
 
