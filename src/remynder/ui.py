@@ -2,9 +2,8 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 from string import Template
-from time import time
 
-from PyQt6.QtCore import QPoint, Qt
+from PyQt6.QtCore import QPoint, QStandardPaths, Qt
 from PyQt6.QtGui import QAction, QColor, QFont, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
@@ -24,6 +23,10 @@ from PyQt6.QtWidgets import (
 )
 
 from .config import Config, save_config
+
+CONFIG_DIR = Path(
+    QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppConfigLocation)
+)
 
 THEMES = {
     "light": {
@@ -101,6 +104,7 @@ POPUP_WINDOW_WIDTH = 500
 POPUP_WINDOW_HEIGHT = 100
 ICON_PATH = "resources/remynder.png"
 DELIMITER = "\n"
+DAY_IN_MINUTES = 24 * 60
 
 
 def resource_path(relative_path: str) -> str:
@@ -122,10 +126,9 @@ def is_dark_mode() -> bool:
 
 
 class SystemTrayIcon(QSystemTrayIcon):
-    def __init__(self, icon: QIcon, parent=None):
+    def __init__(self, icon: QIcon, parent: QWidget | None = None):
         super().__init__(icon, parent)
 
-        self.setIcon(icon)
         self.setVisible(True)
 
         quit_action = QAction("Quit")
@@ -140,7 +143,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     def _create_menu(self) -> None:
         self.menu = QMenu()
-        [self.menu.addAction(a) for a in self.actions]
+        self.menu.addActions(self.actions)
         self.setContextMenu(self.menu)
 
 
@@ -164,13 +167,13 @@ class GuiService:
         self.settings_window: QMainWindow | None = None
 
     @property
-    def center(self):
+    def center(self) -> QPoint:
         screen = QGuiApplication.primaryScreen()
-        if not screen is None:
+        if screen is not None:
             return screen.availableGeometry().center()
         return QPoint(0, 0)
 
-    def show_popup(self, message: str, reset: Callable) -> None:
+    def show_popup(self, message: str, reset: Callable[[], None]) -> None:
         reminder_window = PopupWindow(message, reset)
         reminder_window.setWindowTitle("Remynder")
         reminder_window.setWindowIcon(self._icon)
@@ -179,11 +182,13 @@ class GuiService:
         self.reminder_window = reminder_window
 
     def _open_settings_window(self) -> None:
-        settings_window = SettingsWindow(self._icon, self._config, self.center)
-        settings_window.show()
-        self.settings_window = settings_window
+        if self.settings_window is None:
+            self.settings_window = SettingsWindow(self._icon, self._config, self.center)
+        self.settings_window.show()
+        self.settings_window.raise_()
+        self.settings_window.activateWindow()
 
-    def _toggle_active(self):
+    def _toggle_active(self) -> None:
         self._config.disabled = not self._config.disabled
         if self._config.disabled:
             self.toggle_action.setText("Enable")
@@ -198,7 +203,7 @@ class SettingsWindow(QMainWindow):
         self._load_settings(config)
         self._add_button_events()
 
-    def _build_ui(self, icon: QIcon, center: QPoint):
+    def _build_ui(self, icon: QIcon, center: QPoint) -> None:
         self.setWindowTitle("Settings")
         self.setWindowIcon(icon)
         self.setGeometry(
@@ -208,8 +213,9 @@ class SettingsWindow(QMainWindow):
             SETTINGS_WINDOW_HEIGHT,
         )
 
-        edit = QSpinBox()
-        self.edit = edit
+        spin_box = QSpinBox()
+        spin_box.setRange(1, DAY_IN_MINUTES)
+        self.spin_box = spin_box
 
         text_field = QTextEdit()
         self.text_field = text_field
@@ -219,8 +225,8 @@ class SettingsWindow(QMainWindow):
         self.save_button.setMaximumWidth(120)
 
         layout = QVBoxLayout()
-        layout.addWidget(QLabel(text="Intervall in minutes"))
-        layout.addWidget(edit)
+        layout.addWidget(QLabel(text="Interval in minutes"))
+        layout.addWidget(spin_box)
         layout.addWidget(QLabel(text="Messages"))
         layout.addWidget(text_field)
         layout.addWidget(self.save_button)
@@ -230,19 +236,21 @@ class SettingsWindow(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
-    def _add_button_events(self):
+    def _add_button_events(self) -> None:
         self.save_button.clicked.connect(self._save_settings)
 
-    def _load_settings(self, config: Config):
+    def _load_settings(self, config: Config) -> None:
         self._config = config
-        self.edit.setValue(config.intervall)
+        self.spin_box.setValue(config.interval)
         self.text_field.setText(DELIMITER.join(config.lines))
 
     def _save_settings(self) -> None:
-        intervall = self.edit.value()
-        lines = self.text_field.toPlainText().split(DELIMITER)
+        interval = self.spin_box.value()
+        text = self.text_field.toPlainText()
 
-        self._config.intervall = intervall
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+
+        self._config.interval = interval
         self._config.lines = lines
         save_config(self._config)
         self.close()
@@ -291,7 +299,9 @@ class PopupWindow(QDialog):
         self.button.setObjectName("okButton")
         self.button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.button.setDefault(True)
-        self.button.clicked.connect(self._close)
+
+        self.button.clicked.connect(self.on_close)
+        self.finished.connect(self.on_close)
 
         button_column = QHBoxLayout()
         button_column.addStretch()
@@ -307,7 +317,7 @@ class PopupWindow(QDialog):
         self._set_theme()
         self._show_window()
 
-    def _close(self) -> None:
+    def on_close(self) -> None:
         self.reset()
         self.close()
 
