@@ -3,7 +3,7 @@ from collections.abc import Callable
 from pathlib import Path
 from string import Template
 
-from PyQt6.QtCore import QPoint, QStandardPaths, Qt
+from PyQt6.QtCore import QPoint, Qt
 from PyQt6.QtGui import QAction, QColor, QFont, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
@@ -22,11 +22,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from .config import Config, save_config
-
-CONFIG_DIR = Path(
-    QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppConfigLocation)
-)
+from .config import Config
 
 THEMES = {
     "light": {
@@ -148,8 +144,11 @@ class SystemTrayIcon(QSystemTrayIcon):
 
 
 class GuiService:
-    def __init__(self, config: Config) -> None:
+    def __init__(
+        self, config: Config, disabled: bool, on_save: Callable[[Config], None]
+    ) -> None:
         self._config = config
+        self._on_save = on_save
         self._icon = QIcon(resource_path(ICON_PATH))
 
         self.toggle_action = QAction("Disable")
@@ -183,7 +182,9 @@ class GuiService:
 
     def _open_settings_window(self) -> None:
         if self.settings_window is None:
-            self.settings_window = SettingsWindow(self._icon, self._config, self.center)
+            self.settings_window = SettingsWindow(
+                self._icon, self._config, self.center, self._on_save
+            )
         self.settings_window.show()
         self.settings_window.raise_()
         self.settings_window.activateWindow()
@@ -197,8 +198,15 @@ class GuiService:
 
 
 class SettingsWindow(QMainWindow):
-    def __init__(self, icon: QIcon, config: Config, center: QPoint) -> None:
+    def __init__(
+        self,
+        icon: QIcon,
+        config: Config,
+        center: QPoint,
+        on_save: Callable[[Config], None],
+    ) -> None:
         super().__init__()
+        self._on_save = on_save
         self._build_ui(icon, center)
         self._load_settings(config)
         self._add_button_events()
@@ -252,7 +260,7 @@ class SettingsWindow(QMainWindow):
 
         self._config.interval = interval
         self._config.lines = lines
-        save_config(self._config, CONFIG_DIR)
+        self._on_save(self._config)
         self.close()
 
 

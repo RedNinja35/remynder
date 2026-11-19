@@ -1,4 +1,3 @@
-from configparser import ConfigParser
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,7 +23,6 @@ DEFAULT_CONFIG = Config(
 )
 
 
-## TODO: Add config file name to path
 def load_config(file: Path) -> Config:
     if not file.exists():
         save_config(DEFAULT_CONFIG, file)

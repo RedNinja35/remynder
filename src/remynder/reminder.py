@@ -10,19 +10,19 @@ last_reminder = time()
 
 
 class UiProvider(Protocol):
-    def show_popup(self, message: str, reset: Callable): ...
+    def show_popup(self, message: str, reset: Callable[[], None]) -> None: ...
 
 
 class ReminderService:
-    def __init__(self, config: Config, ui_provider: UiProvider) -> None:
+    def __init__(self, config: Config, ui_provider: UiProvider, disabled: bool) -> None:
         self.config = config
         self.ui_provider = ui_provider
         self.reminder_is_reset = True
-        self.set_last_reminder(time())
+        self.set_last_reminder()
 
-    def set_last_reminder(self, time: float) -> None:
+    def set_last_reminder(self) -> None:
         self.reminder_is_reset = True
-        self.last_reminder = time
+        self.last_reminder = time()
 
     def check(self) -> None:
         print("Checking...")
