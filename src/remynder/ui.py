@@ -252,7 +252,7 @@ class SettingsWindow(QMainWindow):
 
         self._config.interval = interval
         self._config.lines = lines
-        save_config(self._config)
+        save_config(self._config, CONFIG_DIR)
         self.close()
 
 
