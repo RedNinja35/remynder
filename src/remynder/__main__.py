@@ -3,7 +3,7 @@ import sys
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QApplication
 
-from .config import read_config
+from .config import load_config
 from .reminder import ReminderService
 from .ui import GuiService
 
@@ -12,7 +12,7 @@ def main() -> None:
     app = QApplication([])
     app.setQuitOnLastWindowClosed(False)
 
-    config = read_config()
+    config = load_config()
     ui = GuiService(config)
 
     reminder_service = ReminderService(config=config, ui_provider=ui)
