@@ -8,7 +8,6 @@ import toml
 class Config:
     interval: int
     lines: list[str]
-    disabled: bool
 
 
 CONFIG_FILE = "config.toml"
@@ -19,7 +18,6 @@ DEFAULT_CONFIG = Config(
         "Error 404: Movement not found. Please reboot your legs.",
         "Even your code needs to compile - so does your body. Time to stand!",
     ],
-    disabled=False,
 )
 
 
@@ -33,7 +31,6 @@ def load_config(file: Path) -> Config:
     return Config(
         interval=config["Settings"]["interval"],
         lines=config["Settings"]["lines"],
-        disabled=config["Settings"]["disabled"],
     )
 
 
@@ -43,7 +40,6 @@ def save_config(config: Config, path: Path) -> None:
         "settings": {
             "interval": config.interval,
             "lines": config.lines,
-            "disabled": config.disabled,
         }
     }
 

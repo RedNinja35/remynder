@@ -148,6 +148,7 @@ class GuiService:
         self, config: Config, disabled: bool, on_save: Callable[[Config], None]
     ) -> None:
         self._config = config
+        self._disabled = disabled
         self._on_save = on_save
         self._icon = QIcon(resource_path(ICON_PATH))
 
@@ -190,8 +191,8 @@ class GuiService:
         self.settings_window.activateWindow()
 
     def _toggle_active(self) -> None:
-        self._config.disabled = not self._config.disabled
-        if self._config.disabled:
+        self._disabled = not self._disabled
+        if self._disabled:
             self.toggle_action.setText("Enable")
         else:
             self.toggle_action.setText("Disable")
