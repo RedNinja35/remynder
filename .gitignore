@@ -8,5 +8,6 @@ config.ini
 build
 dist
 main.spec
+remynder.spec
 
 __pycache__/
