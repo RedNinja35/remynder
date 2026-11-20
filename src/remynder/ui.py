@@ -107,7 +107,9 @@ def resource_path(relative_path: str) -> str:
     if base is not None:
         base_path = Path(base)  # bundle root in the exe
     else:
-        base_path = Path(__file__).resolve().parent.parent  # src/ -> project root
+        base_path = (
+            Path(__file__).resolve().parent.parent.parent
+        )  # src/ -> project root
     return str(base_path / relative_path)
 
 
@@ -130,19 +132,16 @@ class SystemTrayIcon(QSystemTrayIcon):
         quit_action = QAction("Quit")
         quit_action.triggered.connect(QApplication.quit)
 
-        actions = [quit_action]
-
-        self._menu.addActions(actions)
-
+        self.insert_action(0, quit_action)
         self.setVisible(True)
 
     def insert_action(self, index: int, action: QAction) -> None:
-        if index > len(self._menu.actions()):
+        action.setParent(self._menu)  # menu takes ownership, Qt keeps it alive
+        actions = self._menu.actions()
+        if index >= len(actions):
             self._menu.addAction(action)
-            return
-
-        current_action = self._menu.actions()[index]
-        self._menu.insertAction(current_action, action)
+        else:
+            self._menu.insertAction(actions[index], action)
 
 
 class GuiService:

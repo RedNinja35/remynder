@@ -2,14 +2,14 @@
 name = "remynder"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = [
-    "pyqt6>=6.11.0",
-    "pyqt6-sip>=13.13.0",
-    "toml>=0.10.2",
-]
+dependencies = ["pyqt6>=6.11.0", "pyqt6-sip>=13.13.0", "toml>=0.10.2"]
 
-[project.scripts]
+[project.gui-scripts]
 remynder = "remynder.__main__:main"
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
 
 [dependency-groups]
 dev = [

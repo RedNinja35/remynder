@@ -34,8 +34,8 @@ def load_config(file: Path) -> Config:
         config = toml.load(f)
 
     return Config(
-        interval=config["Settings"]["interval"],
-        lines=config["Settings"]["lines"],
+        interval=config["settings"]["interval"],
+        lines=config["settings"]["lines"],
     )
 
 
