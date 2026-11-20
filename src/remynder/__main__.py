@@ -4,9 +4,9 @@ from pathlib import Path
 from PyQt6.QtCore import QStandardPaths, QTimer
 from PyQt6.QtWidgets import QApplication
 
-from .config import CONFIG_FILE, load_config, save_config
-from .reminder import ReminderService
-from .ui import GuiService
+from remynder.config import CONFIG_FILE, load_config, save_config
+from remynder.reminder import ReminderService
+from remynder.ui import GuiService
 
 CHECK_INTERVAL_MS = 30_000
 

@@ -3,7 +3,7 @@ from random import choice
 from time import monotonic
 from typing import Protocol
 
-from .config import Config
+from remynder.config import Config
 
 
 class UiProvider(Protocol):

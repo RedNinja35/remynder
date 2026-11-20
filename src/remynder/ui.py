@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from .config import Config
+from remynder.config import Config
 
 THEMES = {
     "light": {
