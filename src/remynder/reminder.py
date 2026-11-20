@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from random import choice
-from time import time
+from time import monotonic
 from typing import Protocol
 
 from .config import Config
@@ -20,10 +20,10 @@ class ReminderService:
 
     def set_last_reminder(self) -> None:
         self.reminder_is_reset = True
-        self.last_reminder = time()
+        self.last_reminder = monotonic()
 
     def check(self) -> None:
-        now = time()
+        now = monotonic()
         interval_minutes = self.config.interval * 60
 
         if (
