@@ -124,22 +124,25 @@ class SystemTrayIcon(QSystemTrayIcon):
     def __init__(self, icon: QIcon, parent: QWidget | None = None):
         super().__init__(icon, parent)
 
-        self.setVisible(True)
+        self._menu = QMenu()
+        self.setContextMenu(self._menu)
 
         quit_action = QAction("Quit")
         quit_action.triggered.connect(QApplication.quit)
 
         actions = [quit_action]
-        self.actions = actions
+
+        self._menu.addActions(actions)
+
+        self.setVisible(True)
 
     def insert_action(self, index: int, action: QAction) -> None:
-        self.actions.insert(index, action)
-        self._create_menu()
+        if index > len(self._menu.actions()):
+            self._menu.addAction(action)
+            return
 
-    def _create_menu(self) -> None:
-        self.menu = QMenu()
-        self.menu.addActions(self.actions)
-        self.setContextMenu(self.menu)
+        current_action = self._menu.actions()[index]
+        self._menu.insertAction(current_action, action)
 
 
 class GuiService:
