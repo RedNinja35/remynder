@@ -12,7 +12,6 @@ from PyQt6.QtWidgets import (
     QGraphicsDropShadowEffect,
     QHBoxLayout,
     QLabel,
-    QMainWindow,
     QMenu,
     QPushButton,
     QSpinBox,
@@ -165,7 +164,7 @@ class GuiService:
 
         self.tray = tray
         self.reminder_window: PopupWindow | None = None
-        self.settings_window: QMainWindow | None = None
+        self.settings_window: QDialog | None = None
 
     @property
     def center(self) -> QPoint:
@@ -199,7 +198,7 @@ class GuiService:
             self.toggle_action.setText("Disable")
 
 
-class SettingsWindow(QMainWindow):
+class SettingsWindow(QDialog):
     def __init__(
         self,
         icon: QIcon,
@@ -243,9 +242,7 @@ class SettingsWindow(QMainWindow):
         layout.addWidget(self.save_button)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
+        self.setLayout(layout)
 
     def _add_button_events(self) -> None:
         self.save_button.clicked.connect(self._save_settings)
