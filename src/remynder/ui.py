@@ -96,8 +96,6 @@ QLabel {
 
 SETTINGS_WINDOW_WIDTH = 1000
 SETTINGS_WINDOW_HEIGHT = 400
-POPUP_WINDOW_WIDTH = 500
-POPUP_WINDOW_HEIGHT = 100
 ICON_PATH = "resources/remynder.png"
 DELIMITER = "\n"
 DAY_IN_MINUTES = 24 * 60
@@ -105,8 +103,9 @@ DAY_IN_MINUTES = 24 * 60
 
 def resource_path(relative_path: str) -> str:
     """Return absolute path to a resource, working for dev and PyInstaller builds."""
-    if hasattr(sys, "_MEIPASS"):
-        base_path = Path(sys._MEIPASS)  # bundle root in the exe
+    base = getattr(sys, "_MEIPASS", None)
+    if base is not None:
+        base_path = Path(base)  # bundle root in the exe
     else:
         base_path = Path(__file__).resolve().parent.parent  # src/ -> project root
     return str(base_path / relative_path)
@@ -208,6 +207,7 @@ class SettingsWindow(QMainWindow):
     ) -> None:
         super().__init__()
         self._on_save = on_save
+        self._config = config
         self._build_ui(icon, center)
         self._load_settings(config)
         self._add_button_events()
@@ -249,7 +249,6 @@ class SettingsWindow(QMainWindow):
         self.save_button.clicked.connect(self._save_settings)
 
     def _load_settings(self, config: Config) -> None:
-        self._config = config
         self.spin_box.setValue(config.interval)
         self.text_field.setText(DELIMITER.join(config.lines))
 

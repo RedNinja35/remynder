@@ -8,6 +8,8 @@ from .config import CONFIG_FILE, load_config, save_config
 from .reminder import ReminderService
 from .ui import GuiService
 
+CHECK_INTERVAL_MS = 30_000
+
 
 def get_config_path() -> Path:
     config_dir = Path(
@@ -35,7 +37,7 @@ def main() -> None:
     reminder_service = ReminderService(config, ui_provider=ui, disabled=disabled)
 
     timer = QTimer()
-    timer.setInterval(30_000)
+    timer.setInterval(CHECK_INTERVAL_MS)
     timer.timeout.connect(reminder_service.check)
 
     timer.start()
